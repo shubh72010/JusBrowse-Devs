@@ -953,6 +953,10 @@ GitHub
 
 <div class="docs-grid">
 <div class="docs-card">
+<h3><span>🔐</span> JA4 Fingerprinting</h3>
+<p>Deep technical breakdown of JA4 TLS fingerprinting - modern replacement for JA3 with resistance to browser randomization.</p>
+</div>
+<div class="docs-card">
 <h3><span>🛡️</span> Fake Mode Research</h3>
 <p>Fingerprint protection via hardware spoofing, canvas noise, WebRTC shielding.</p>
 </div>
@@ -967,6 +971,145 @@ GitHub
 <div class="docs-card">
 <h3><span>💾</span> Tab Memory</h3>
 <p>Custom tab pool with LRU eviction for memory optimization.</p>
+</div>
+</div>
+
+<div class="stitle" style="margin-top:48px">JA4 Fingerprinting — Deep Technical Breakdown</div>
+
+<div class="rc" style="margin-bottom:24px">
+<div class="rh" onclick="this.parentElement.classList.toggle('open')">
+<div class="rhl"><span class="rv">Overview</span><span class="ri"><span class="rn">Core Architecture</span></span></div>
+<span class="chev">▼</span>
+</div>
+<div class="rb">
+<p style="margin:16px 0;line-height:1.8">JA4 is the modern replacement for JA3, created to fingerprint TLS clients in a way that's <strong>stable, readable, and resistant to browser randomization tricks</strong>.</p>
+<p style="margin:16px 0;line-height:1.8">It was introduced by <strong>FoxIO</strong> as part of the broader JA4+ suite.</p>
+
+<h4 style="margin:24px 0 12px;color:var(--ac2)">Format</h4>
+<pre style="background:rgba(0,0,0,.4);padding:16px;border-radius:8px;overflow-x:auto;font-size:13px">a_b_c
+
+Example: t13d1516h2_8daaf6152771_e5627efa2ab1</pre>
+
+<table class="ct" style="margin-top:16px">
+<tr><th>Section</th><th>Purpose</th><th>Human Readable</th></tr>
+<tr><td>A</td><td>Protocol Metadata</td><td>✅ Yes</td></tr>
+<tr><td>B</td><td>Cipher Hash</td><td>❌ (Truncated SHA256)</td></tr>
+<tr><td>C</td><td>Extension Hash</td><td>❌ (Truncated SHA256)</td></tr>
+</table>
+</div>
+</div>
+
+<div class="rc" style="margin-bottom:24px">
+<div class="rh" onclick="this.parentElement.classList.toggle('open')">
+<div class="rhl"><span class="rv">Part A</span><span class="ri"><span class="rn">Behavioral Header (Plaintext)</span></span></div>
+<span class="chev">▼</span>
+</div>
+<div class="rb">
+<p style="margin:16px 0;line-height:1.8">Example: <code style="background:rgba(124,58,237,.2);padding:4px 10px;border-radius:4px">t13d1516h2</code></p>
+
+<table class="ct">
+<tr><th>Segment</th><th>Meaning</th></tr>
+<tr><td>t</td><td>Transport (TCP)</td></tr>
+<tr><td>13</td><td>TLS 1.3</td></tr>
+<tr><td>d</td><td>SNI uses Domain</td></tr>
+<tr><td>15</td><td>Cipher count</td></tr>
+<tr><td>16</td><td>Extension count</td></tr>
+<tr><td>h2</td><td>ALPN → HTTP/2</td></tr>
+</table>
+
+<p style="margin:16px 0;line-height:1.8">This part allows quick classification without hash cracking. It separates transport, TLS version, and protocol negotiation, enabling fuzzy grouping (e.g., all TLS 1.3 TCP clients).</p>
+</div>
+</div>
+
+<div class="rc" style="margin-bottom:24px">
+<div class="rh" onclick="this.parentElement.classList.toggle('open')">
+<div class="rhl"><span class="rv">Part B</span><span class="ri"><span class="rn">Cipher Hash</span></span></div>
+<span class="chev">▼</span>
+</div>
+<div class="rb">
+<ul style="margin:16px 0;padding-left:20px;line-height:2">
+<li>SHA256 of the <strong>sorted cipher list</strong></li>
+<li>Truncated to 12 hex characters</li>
+<li>Sorting is the key upgrade</li>
+</ul>
+<p style="margin:16px 0;line-height:1.8">Modern browsers (especially Chrome) use GREASE and cipher randomization. JA3 would break every time cipher order changed. JA4 doesn't care — order is normalized before hashing.</p>
+<p style="margin:16px 0;line-height:1.8">This kills cipher stunting, random order evasion, and noise inflation.</p>
+</div>
+</div>
+
+<div class="rc" style="margin-bottom:24px">
+<div class="rh" onclick="this.parentElement.classList.toggle('open')">
+<div class="rhl"><span class="rv">Part C</span><span class="ri"><span class="rn">Extension Hash</span></span></div>
+<span class="chev">▼</span>
+</div>
+<div class="rb">
+<ul style="margin:16px 0;padding-left:20px;line-height:2">
+<li>SHA256 of <strong>sorted TLS extensions</strong></li>
+<li>Truncated to 12 chars</li>
+<li>Usually the <strong>true TLS stack signature</strong></li>
+</ul>
+<p style="margin:16px 0;line-height:1.8">This is the true TLS fingerprint. OpenSSL clients cluster together, Windows SChannel separately, Go TLS stack looks different, Python's ssl module stands out.</p>
+</div>
+</div>
+
+<div class="rc" style="margin-bottom:24px">
+<div class="rh" onclick="this.parentElement.classList.toggle('open')">
+<div class="rhl"><span class="rv">Analysis</span><span class="ri"><span class="rn">Why JA3 Collapsed</span></span></div>
+<span class="chev">▼</span>
+</div>
+<div class="rb">
+<table class="ct">
+<tr><th>Problem</th><th>Why It Happened</th></tr>
+<tr><td>Order-sensitive</td><td>Exact sequence hashing</td></tr>
+<tr><td>MD5 collisions</td><td>Weak hash</td></tr>
+<tr><td>Extension randomization</td><td>Browsers started GREASE</td></tr>
+<tr><td>No metadata clarity</td><td>Single opaque hash</td></tr>
+</table>
+<p style="margin:16px 0;line-height:1.8">When Chrome began shuffling TLS extension order, one browser version produced <strong>millions of JA3 hashes</strong>. Detection pipelines became unusable.</p>
+<p style="margin:16px 0;line-height:1.8">JA4 fixed it by: sorting fields, splitting metadata, using SHA256, and allowing fuzzy correlation.</p>
+</div>
+</div>
+
+<div class="rc" style="margin-bottom:24px">
+<div class="rh" onclick="this.parentElement.classList.toggle('open')">
+<div class="rhl"><span class="rv">Suite</span><span class="ri"><span class="rn">JA4+ Multi-Layer Correlation</span></span></div>
+<span class="chev">▼</span>
+</div>
+<div class="rb">
+<table class="ct">
+<tr><th>Variant</th><th>Layer</th><th>Purpose</th></tr>
+<tr><td>JA4</td><td>TLS ClientHello</td><td>Client fingerprint</td></tr>
+<tr><td>JA4S</td><td>TLS ServerHello</td><td>Server fingerprint</td></tr>
+<tr><td>JA4H</td><td>HTTP</td><td>Header & cookie fingerprint</td></tr>
+<tr><td>JA4L</td><td>Network timing</td><td>Latency analysis</td></tr>
+<tr><td>JA4X</td><td>X.509</td><td>Certificate fingerprint</td></tr>
+</table>
+<p style="margin:16px 0;line-height:1.8">This is cross-layer fingerprinting across OSI levels. Extremely powerful when combined.</p>
+</div>
+</div>
+
+<div class="rc" style="margin-bottom:24px">
+<div class="rh" onclick="this.parentElement.classList.toggle('open')">
+<div class="rhl"><span class="rv">Applications</span><span class="ri"><span class="rn">Real-World Security Uses</span></span></div>
+<span class="chev">▼</span>
+</div>
+<div class="rb">
+<h4 style="margin:16px 0 12px;color:var(--ac2)">1. Bot & Scraper Detection</h4>
+<p style="margin:16px 0;line-height:1.8">User-Agent can lie. TLS stack usually cannot.</p>
+<p style="margin:16px 0;line-height:1.8">If: UA says "Chrome 122" but JA4 matches Python requests → <strong style="color:var(--rd)">Immediate red flag</strong></p>
+
+<h4 style="margin:24px 0 12px;color:var(--ac2)">2. Malware & C2 Tracking</h4>
+<p style="margin:16px 0;line-height:1.8">Tools like Cobalt Strike or Sliver often ship with hardcoded TLS libraries and distinct extension patterns.</p>
+<p style="margin:16px 0;line-height:1.8">Security teams block based on JA4 hashes instead of IP. Even if attacker rotates IP, Domain, and CDN — TLS signature persists.</p>
+
+<h4 style="margin:24px 0 12px;color:var(--ac2)">3. Session Hijack Detection</h4>
+<p style="margin:16px 0;line-height:1.8">If a session cookie starts with JA4 fingerprint A but suddenly switches to fingerprint B, you've likely got:</p>
+<ul style="margin:16px 0;padding-left:20px;line-height:2">
+<li>Cookie theft</li>
+<li>Proxy injection</li>
+<li>Account compromise</li>
+</ul>
+<p style="margin:16px 0;line-height:1.8">Immediate invalidation recommended.</p>
 </div>
 </div>
 </div>
