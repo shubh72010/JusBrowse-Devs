@@ -975,12 +975,12 @@ GitHub
 
 <div class="stitle" style="margin-top:48px">JA4 Fingerprinting — Deep Technical Breakdown</div>
 
-<div class="rc" style="margin-bottom:24px">
+<div class="rc open" style="margin-bottom:24px">
 <div class="rh" onclick="this.parentElement.classList.toggle('open')">
 <div class="rhl"><span class="rv">Overview</span><span class="ri"><span class="rn">Core Architecture</span></span></div>
 <span class="chev">▼</span>
 </div>
-<div class="rb">
+<div class="rb" style="display:block">
 <p style="margin:16px 0;line-height:1.8">JA4 is the modern replacement for JA3, created to fingerprint TLS clients in a way that's <strong>stable, readable, and resistant to browser randomization tricks</strong>.</p>
 <p style="margin:16px 0;line-height:1.8">It was introduced by <strong>FoxIO</strong> as part of the broader JA4+ suite.</p>
 
@@ -991,19 +991,19 @@ Example: t13d1516h2_8daaf6152771_e5627efa2ab1</pre>
 
 <table class="ct" style="margin-top:16px">
 <tr><th>Section</th><th>Purpose</th><th>Human Readable</th></tr>
-<tr><td>A</td><td>Protocol Metadata</td><td>✅ Yes</td></tr>
-<tr><td>B</td><td>Cipher Hash</td><td>❌ (Truncated SHA256)</td></tr>
-<tr><td>C</td><td>Extension Hash</td><td>❌ (Truncated SHA256)</td></tr>
+<tr><td>A</td><td>Protocol Metadata</td><td>Yes</td></tr>
+<tr><td>B</td><td>Cipher Hash</td><td>(Truncated SHA256)</td></tr>
+<tr><td>C</td><td>Extension Hash</td><td>(Truncated SHA256)</td></tr>
 </table>
 </div>
 </div>
 
-<div class="rc" style="margin-bottom:24px">
+<div class="rc open" style="margin-bottom:24px">
 <div class="rh" onclick="this.parentElement.classList.toggle('open')">
 <div class="rhl"><span class="rv">Part A</span><span class="ri"><span class="rn">Behavioral Header (Plaintext)</span></span></div>
 <span class="chev">▼</span>
 </div>
-<div class="rb">
+<div class="rb" style="display:block">
 <p style="margin:16px 0;line-height:1.8">Example: <code style="background:rgba(124,58,237,.2);padding:4px 10px;border-radius:4px">t13d1516h2</code></p>
 
 <table class="ct">
@@ -1013,7 +1013,7 @@ Example: t13d1516h2_8daaf6152771_e5627efa2ab1</pre>
 <tr><td>d</td><td>SNI uses Domain</td></tr>
 <tr><td>15</td><td>Cipher count</td></tr>
 <tr><td>16</td><td>Extension count</td></tr>
-<tr><td>h2</td><td>ALPN → HTTP/2</td></tr>
+<tr><td>h2</td><td>ALPN - HTTP/2</td></tr>
 </table>
 
 <p style="margin:16px 0;line-height:1.8">This part allows quick classification without hash cracking. It separates transport, TLS version, and protocol negotiation, enabling fuzzy grouping (e.g., all TLS 1.3 TCP clients).</p>
@@ -1031,7 +1031,7 @@ Example: t13d1516h2_8daaf6152771_e5627efa2ab1</pre>
 <li>Truncated to 12 hex characters</li>
 <li>Sorting is the key upgrade</li>
 </ul>
-<p style="margin:16px 0;line-height:1.8">Modern browsers (especially Chrome) use GREASE and cipher randomization. JA3 would break every time cipher order changed. JA4 doesn't care — order is normalized before hashing.</p>
+<p style="margin:16px 0;line-height:1.8">Modern browsers (especially Chrome) use GREASE and cipher randomization. JA3 would break every time cipher order changed. JA4 doesn't care - order is normalized before hashing.</p>
 <p style="margin:16px 0;line-height:1.8">This kills cipher stunting, random order evasion, and noise inflation.</p>
 </div>
 </div>
@@ -1079,7 +1079,7 @@ Example: t13d1516h2_8daaf6152771_e5627efa2ab1</pre>
 <tr><th>Variant</th><th>Layer</th><th>Purpose</th></tr>
 <tr><td>JA4</td><td>TLS ClientHello</td><td>Client fingerprint</td></tr>
 <tr><td>JA4S</td><td>TLS ServerHello</td><td>Server fingerprint</td></tr>
-<tr><td>JA4H</td><td>HTTP</td><td>Header & cookie fingerprint</td></tr>
+<tr><td>JA4H</td><td>HTTP</td><td>Header and cookie fingerprint</td></tr>
 <tr><td>JA4L</td><td>Network timing</td><td>Latency analysis</td></tr>
 <tr><td>JA4X</td><td>X.509</td><td>Certificate fingerprint</td></tr>
 </table>
@@ -1093,13 +1093,13 @@ Example: t13d1516h2_8daaf6152771_e5627efa2ab1</pre>
 <span class="chev">▼</span>
 </div>
 <div class="rb">
-<h4 style="margin:16px 0 12px;color:var(--ac2)">1. Bot & Scraper Detection</h4>
+<h4 style="margin:16px 0 12px;color:var(--ac2)">1. Bot and Scraper Detection</h4>
 <p style="margin:16px 0;line-height:1.8">User-Agent can lie. TLS stack usually cannot.</p>
-<p style="margin:16px 0;line-height:1.8">If: UA says "Chrome 122" but JA4 matches Python requests → <strong style="color:var(--rd)">Immediate red flag</strong></p>
+<p style="margin:16px 0;line-height:1.8">If: UA says "Chrome 122" but JA4 matches Python requests - <strong style="color:var(--rd)">Immediate red flag</strong></p>
 
-<h4 style="margin:24px 0 12px;color:var(--ac2)">2. Malware & C2 Tracking</h4>
+<h4 style="margin:24px 0 12px;color:var(--ac2)">2. Malware and C2 Tracking</h4>
 <p style="margin:16px 0;line-height:1.8">Tools like Cobalt Strike or Sliver often ship with hardcoded TLS libraries and distinct extension patterns.</p>
-<p style="margin:16px 0;line-height:1.8">Security teams block based on JA4 hashes instead of IP. Even if attacker rotates IP, Domain, and CDN — TLS signature persists.</p>
+<p style="margin:16px 0;line-height:1.8">Security teams block based on JA4 hashes instead of IP. Even if attacker rotates IP, Domain, and CDN - TLS signature persists.</p>
 
 <h4 style="margin:24px 0 12px;color:var(--ac2)">3. Session Hijack Detection</h4>
 <p style="margin:16px 0;line-height:1.8">If a session cookie starts with JA4 fingerprint A but suddenly switches to fingerprint B, you've likely got:</p>
