@@ -1,0 +1,3 @@
+* Current progress: Removed unverified statistical claims and speculative high-level metrics across the Research and Documentation sections. Replaced them with objective, feature-focused descriptions of the 'Surgical' interception engine.
+* Active constraints: No speculative or manufactured research data permitted. All technical claims must be grounded in the verifiable implementation of `shouldInterceptRequest` and `NetworkSurgeon`.
+* Immediate next step: Review any remaining sections for potential 'fluff' and ensure the portal remains strictly factual according to the browser's actual capabilities.
